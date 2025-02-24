@@ -15,6 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+          - name: 🛠 Debug Secrets (Do Not Use in Production!)
+        run: |
+          echo "FTP_SERVER=${{ secrets.FTP_SERVER }}"
+          echo "FTP_USERNAME=${{ secrets.FTP_USERNAME }}"
+
       - name: 🚀 Checkout Repository
         uses: actions/checkout@v4
 
