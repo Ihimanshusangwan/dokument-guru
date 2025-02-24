@@ -50,3 +50,10 @@ jobs:
       - name: 📂 Deploy Backend to Server using SSH
         run: |
           rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin
+
+      - name: ⚙️ Run Composer Install on Server
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
+          cd domains/dokumentguru.com/public_html/admin
+          composer install --no-dev --optimize-autoloader
+          EOF
