@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    types:
-      - closed
     branches:
       - master
 
@@ -27,7 +24,7 @@ jobs:
       - name: 📦 Install Dependencies & Build Frontend
         run: |
           cd frontend
-          npm ci
+          npm install --no-cache
           npm run build
 
       - name: 📂 Move Frontend Public to Backend Public Folder
