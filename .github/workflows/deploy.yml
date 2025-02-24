@@ -36,6 +36,17 @@ jobs:
           rsync -av --ignore-existing frontend/public/ backend/public/
           rsync -av --update frontend/public/ backend/public/
 
+      - name: 🛠️ Setup PHP and Install Dependencies Locally
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: 📦 Install PHP Dependencies
+        run: |
+          cd backend
+          composer install --no-dev --optimize-autoloader
+
       - name: 🔑 Setup SSH Key
         run: |
           mkdir -p ~/.ssh
@@ -47,13 +58,6 @@ jobs:
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d domains/dokumentguru.com/public_html/admin ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
 
-      - name: 📂 Deploy Backend to Server using SSH
+      - name: 📂 Deploy Backend (Including Vendor) to Server using SSH
         run: |
           rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin
-
-      - name: ⚙️ Run Composer Install on Server
-        run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
-          cd domains/dokumentguru.com/public_html/admin
-          composer install --no-dev --optimize-autoloader
-          EOF
