@@ -32,13 +32,11 @@ jobs:
 
       - name: 📂 Move Frontend Public to Backend Public Folder
         run: |
-           rsync -av --delete frontend/public/ backend/public/
-
+          rsync -av --delete frontend/public/ backend/public/
 
       - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ftp.samkirkland.com
-        username: myFtpUserName
-        password: ${{ secrets.ftp_password }}
-
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ftp.samkirkland.com
+          username: myFtpUserName
+          password: ${{ secrets.ftp_password }}
