@@ -23,17 +23,18 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json # ✅ Use frontend package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: 📦 Install Dependencies & Build Frontend
         run: |
           cd frontend
-          npm ci # ✅ Use "npm ci" to ensure dependencies match package-lock.json
+          npm ci
           npm run build
 
-      - name: 📂 Move Frontend Public to Backend Public Folder
+      - name: 📂 Copy Frontend Public to Backend Public Folder (Without Deleting Existing Files)
         run: |
-          rsync -av --delete frontend/public/ backend/public/
+          rsync -av --ignore-existing frontend/public/ backend/public/
+          rsync -av --update frontend/public/ backend/public/ # Ensures newer files are replaced
 
       - name: 📂 Sync files to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
