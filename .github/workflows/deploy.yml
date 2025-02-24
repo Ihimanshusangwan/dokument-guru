@@ -15,10 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛠 Debug Secrets (Do Not Use in Production!)
-        run: |
-          echo "FTP_SERVER=${{ secrets.FTP_SERVER }}"
-          echo "FTP_USERNAME=${{ secrets.FTP_USERNAME }}"
 
       - name: 🚀 Checkout Repository
         uses: actions/checkout@v4
@@ -41,9 +37,13 @@ jobs:
           rsync -av --ignore-existing frontend/public/ backend/public/
           rsync -av --update frontend/public/ backend/public/ # Ensures newer files are replaced
 
-      - name: 📂 Sync files to FTP
+      - name: 🗑️ Remove Frontend Folder
+        run: rm -rf frontend 
+
+      - name: 📂 Sync Only Backend Folder to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: backend/ 
