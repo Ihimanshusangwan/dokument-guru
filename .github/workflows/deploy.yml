@@ -1,4 +1,4 @@
-name: Deploy to Hosting 
+name: Deploy to Hosting
 
 on:
   push:
@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: 🚀 Checkout Repository
         uses: actions/checkout@v4
 
@@ -35,16 +34,19 @@ jobs:
       - name: 📂 Copy Frontend Public to Backend Public Folder (Without Deleting Existing Files)
         run: |
           rsync -av --ignore-existing frontend/public/ backend/public/
-          rsync -av --update frontend/public/ backend/public/ # Ensures newer files are replaced
+          rsync -av --update frontend/public/ backend/public/
 
-      - name: 🗑️ Remove Frontend Folder
-        run: rm -rf frontend 
+      - name: 🔑 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 📂 Sync Only Backend Folder to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: backend/ 
-          
+      - name: 🔍 Check if Deployment Folder Exists on Server
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d domains/dokumentguru.com/public_html/admin ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
+
+      - name: 📂 Deploy Backend to Server using SSH
+        run: |
+          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin
