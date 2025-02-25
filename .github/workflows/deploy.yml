@@ -3,12 +3,12 @@ name: Deploy to Hosting
 on:
   push:
     branches:
-      - master
+      - test
   pull_request:
     types:
       - closed
     branches:
-      - master
+      - test
 
 jobs:
   deploy:
@@ -56,8 +56,8 @@ jobs:
 
       - name: 🔍 Check if Deployment Folder Exists on Server
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d domains/dokumentguru.com/public_html/admin ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d domains/dokumentguru.com/public_html/admin/test ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
 
       - name: 📂 Deploy Backend (Including Vendor) to Server using SSH
         run: |
-          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin
+          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin/test
