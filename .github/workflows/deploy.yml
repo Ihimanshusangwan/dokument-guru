@@ -1,6 +1,9 @@
 name: Deploy to Hosting
 
 on:
+  push:
+    branches:
+      - test
   pull_request:
     types:
       - closed
@@ -52,10 +55,27 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
+      - name: 🔍 Set Deployment Path
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "DEPLOY_PATH=domains/dokumentguru.com/public_html/admin" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+            echo "DEPLOY_PATH=domains/dokumentguru.com/public_html/admin/test" >> $GITHUB_ENV
+          else
+            echo "❌ Unsupported branch, skipping deployment!" && exit 1
+          fi
+
       - name: 🔍 Check if Deployment Folder Exists on Server
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d domains/dokumentguru.com/public_html/admin ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d $DEPLOY_PATH ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
 
       - name: 📂 Deploy Backend (Including Vendor) to Server using SSH
         run: |
-          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:domains/dokumentguru.com/public_html/admin
+          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH
+
+      - name: 🔄 Run Migrations and Seed Database
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd $DEPLOY_PATH
+          php artisan migrate --seed --force
+          EOF
