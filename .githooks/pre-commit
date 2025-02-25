@@ -18,16 +18,23 @@ cd "$GIT_REPO_ROOT" || {
 # Check for unresolved merge conflicts
 MERGE_CONFLICTS=$(git diff --name-only --diff-filter=U)
 
-if [ "$CURRENT_BRANCH" == "test" ] && [ -z "$MERGE_CONFLICTS" ]; then
+# Check if Git is in a merge state
+MERGE_IN_PROGRESS=false
+if [ -f "${GIT_DIR}/MERGE_HEAD" ]; then
+    MERGE_IN_PROGRESS=true
+fi
+
+# Block direct commits to the test branch, but allow merge conflict resolution
+if [ "$CURRENT_BRANCH" == "test" ] && [ -z "$MERGE_CONFLICTS" ] && [ "$MERGE_IN_PROGRESS" == "false" ]; then
     echo -e "${RED}❌ ERROR: Direct commits to the 'test' branch are not allowed.${NC}"
     echo "Please use a feature branch and merge your changes to 'test'."
     exit 1
 fi
 
-# Allow commit if resolving merge conflicts
+# If merge conflicts exist, stop the commit and prompt the user to resolve them
 if [ -n "$MERGE_CONFLICTS" ]; then
-    echo -e "${GREEN}⚠️  Merge conflicts detected. Resolve them before committing.${NC}"
-    exit 0
+    echo -e "${RED}❌ Merge conflicts detected! Resolve them before committing.${NC}"
+    exit 1
 fi
 
 # Get list of changed files
