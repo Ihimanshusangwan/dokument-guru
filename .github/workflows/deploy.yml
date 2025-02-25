@@ -75,7 +75,5 @@ jobs:
 
       - name: 🔄 Run Migrations and Seed Database
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd $DEPLOY_PATH
-          php artisan migrate --seed --force
-          EOF
+          ssh -t -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd $DEPLOY_PATH && php artisan migrate --seed --force"
+      
