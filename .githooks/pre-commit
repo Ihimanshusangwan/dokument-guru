@@ -17,7 +17,6 @@ if [ -d "backend" ]; then
         echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
         (cd backend && vendor/bin/php-cs-fixer fix --quiet)
 
-        # Check if there are fixes
         if [ $? -ne 0 ]; then
             echo "❌ PHP-CS-Fixer encountered an error."
             exit 1
@@ -61,5 +60,8 @@ if [ -n "$TS_FILES" ]; then
 
     echo "✅ TypeScript type check completed."
 fi
+
+# **Ensure deleted files are staged for commit**
+git add --all
 
 echo "✅ All checks passed! Proceeding with commit."
