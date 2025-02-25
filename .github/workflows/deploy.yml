@@ -1,12 +1,10 @@
 name: Deploy to Hosting
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     types:
       - closed
+      - merged
     branches:
       - master
 
