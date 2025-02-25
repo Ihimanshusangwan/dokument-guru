@@ -1,0 +1,19 @@
+#!/bin/bash
+
+echo "🚀 Cleaning up merged branches..."
+
+PROTECTED_BRANCHES=("master" "test" "$(git rev-parse --abbrev-ref HEAD)")
+
+# Get merged branches
+MERGED_BRANCHES=$(git branch --merged master | grep -v '^\*' | awk '{print $1}')
+
+for branch in $MERGED_BRANCHES; do
+    if [[ ! " ${PROTECTED_BRANCHES[@]} " =~ " ${branch} " ]]; then
+        echo "🔥 Deleting merged branch: $branch"
+        git branch -d $branch
+    else
+        echo "⏭️ Skipping protected branch: $branch"
+    fi
+done
+
+echo "✅ Merged branches deleted!"
