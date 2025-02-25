@@ -2,6 +2,13 @@
 
 echo "🚀 Running Pre-Commit Hook..."
 
+# Prevent commits on the 'test' branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" == "test" ]; then
+    echo "❌ Direct commits to the 'test' branch are not allowed. Please use a feature or bugfix branch."
+    exit 1
+fi
+
 # Run PHP-CS-Fixer in backend (auto-fix)
 if [ -d "backend" ]; then
     echo "⚡ Running PHP-CS-Fixer in backend (auto-fix)..."
@@ -12,6 +19,9 @@ if [ -d "backend" ]; then
     fi
     git add backend # Re-add fixed files to the commit
 fi
+
+# Get list of changed files
+FILTERED_FILES=$(git diff --cached --name-only)
 
 # Run ESLint only on changed JS/TS files
 JS_TS_FILES=$(echo "$FILTERED_FILES" | grep -E '\.(js|jsx|ts|tsx)$')
