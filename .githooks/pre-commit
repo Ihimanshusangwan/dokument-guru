@@ -8,9 +8,15 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 # Check if there are merge conflicts
 MERGE_CONFLICTS=$(git ls-files -u)
 
+# Prevent direct commits on 'test' branch unless resolving merge conflicts
 if [ "$CURRENT_BRANCH" == "test" ]; then
     if [ -n "$MERGE_CONFLICTS" ]; then
         echo "⚠️ Merge conflicts detected. You are allowed to commit only after resolving them manually."
+
+        # Prepare a default commit message with 'conflict'
+        echo -e "Merge conflict resolved manually\n\n# This commit resolves merge conflicts" > .git/MERGE_MSG
+
+        exit 0  # Allow commit but require manual resolution
     else
         echo "❌ Direct commits to the 'test' branch are not allowed unless resolving merge conflicts."
         exit 1
