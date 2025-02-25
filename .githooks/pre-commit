@@ -1,52 +1,55 @@
 #!/bin/bash
 
-echo "🚀 Running Pre-Commit Hook..."
+# Define colors for output messages
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-# Get the current branch name
+# Get Git information
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_DIR=$(git rev-parse --git-dir)
+GIT_REPO_ROOT=$(git rev-parse --show-toplevel)
 
-# Check if there are merge conflicts
-MERGE_CONFLICTS=$(git ls-files -u)
+cd "$GIT_REPO_ROOT" || {
+    echo "❌ Failed to change to repository root."
+    exit 1
+}
 
-# Prevent direct commits on 'test' branch unless resolving merge conflicts
-if [ "$CURRENT_BRANCH" == "test" ]; then
-    if [ -n "$MERGE_CONFLICTS" ]; then
-        echo "⚠️ Merge conflicts detected. You are allowed to commit only after resolving them manually."
+# Check for unresolved merge conflicts
+MERGE_CONFLICTS=$(git diff --name-only --diff-filter=U)
 
-        # Prepare a default commit message with 'conflict'
-        echo -e "Merge conflict resolved manually\n\n# This commit resolves merge conflicts" > .git/MERGE_MSG
-
-        exit 0  # Allow commit but require manual resolution
-    else
-        echo "❌ Direct commits to the 'test' branch are not allowed unless resolving merge conflicts."
-        exit 1
-    fi
+if [ "$CURRENT_BRANCH" == "test" ] && [ -z "$MERGE_CONFLICTS" ]; then
+    echo -e "${RED}❌ ERROR: Direct commits to the 'test' branch are not allowed.${NC}"
+    echo "Please use a feature branch and merge your changes to 'test'."
+    exit 1
 fi
 
-# Run PHP-CS-Fixer only on changed files
-if [ -d "backend" ]; then
-    PHP_FILES=$(git diff --cached --name-only | grep -E '^backend/.*\.php$')
-
-    if [ -n "$PHP_FILES" ]; then
-        echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
-        (cd backend && vendor/bin/php-cs-fixer fix --quiet)
-
-        if [ $? -ne 0 ]; then
-            echo "❌ PHP-CS-Fixer encountered an error."
-            exit 1
-        fi
-
-        echo "✅ PHP-CS-Fixer completed."
-        git add $PHP_FILES # Re-add fixed files
-    fi
+# Allow commit if resolving merge conflicts
+if [ -n "$MERGE_CONFLICTS" ]; then
+    echo -e "${GREEN}⚠️  Merge conflicts detected. Resolve them before committing.${NC}"
+    exit 0
 fi
 
 # Get list of changed files
-FILTERED_FILES=$(git diff --cached --name-only)
+CHANGED_FILES=$(git diff --cached --name-only)
+
+# Run PHP-CS-Fixer only on changed PHP files
+PHP_FILES=$(echo "$CHANGED_FILES" | grep -E '^backend/.*\.php$')
+if [ -n "$PHP_FILES" ]; then
+    echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
+    (cd backend && vendor/bin/php-cs-fixer fix --quiet)
+
+    if [ $? -ne 0 ]; then
+        echo "❌ PHP-CS-Fixer encountered an error."
+        exit 1
+    fi
+
+    git add $PHP_FILES
+    echo "✅ PHP-CS-Fixer completed."
+fi
 
 # Run ESLint only on changed JS/TS files
-JS_TS_FILES=$(echo "$FILTERED_FILES" | grep -E '\.(js|jsx|ts|tsx)$')
-
+JS_TS_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$')
 if [ -n "$JS_TS_FILES" ]; then
     echo "⚡ Running ESLint on changed JavaScript/TypeScript files..."
     (cd frontend && npx eslint --fix $JS_TS_FILES --quiet)
@@ -56,15 +59,14 @@ if [ -n "$JS_TS_FILES" ]; then
         exit 1
     fi
 
-    echo "✅ ESLint completed."
     git add $JS_TS_FILES
+    echo "✅ ESLint completed."
 fi
 
 # Run TypeScript check only if changed TS files exist
-TS_FILES=$(echo "$FILTERED_FILES" | grep -E '\.(ts|tsx)$')
-
+TS_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx)$')
 if [ -n "$TS_FILES" ]; then
-    echo "⚡ Running TypeScript type check on changed files..."
+    echo "⚡ Running TypeScript type check..."
     (cd frontend && npx tsc --noEmit --pretty --skipLibCheck)
 
     if [ $? -ne 0 ]; then
@@ -75,7 +77,5 @@ if [ -n "$TS_FILES" ]; then
     echo "✅ TypeScript type check completed."
 fi
 
-# Ensure deleted files are staged for commit
-git add --all
-
-echo "✅ All checks passed! Proceeding with commit."
+echo -e "${GREEN}✅ All checks passed! Proceeding with commit.${NC}"
+exit 0

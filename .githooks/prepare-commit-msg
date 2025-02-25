@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# prepare commit message hook can be used to validate and even override the commit message before it is committed.
+
+GIT_DIR=$(git rev-parse --git-dir)
+
+# Do nothing if not a merge commit.
+[ -s "${GIT_DIR}/MERGE_MSG" ] || exit 0
+
+# If conflicts are found, prepend commit subject with "[Conflicts] " and include the conflict files in the commit message.
+if grep -q '^# Conflicts:' "${GIT_DIR}/MERGE_MSG"; then
+    sed -i.bak 's/^# *//g' "${GIT_DIR}/MERGE_MSG" && rm -f "${GIT_DIR}/MERGE_MSG.bak"
+    sed -i.bak -E 's/^(Merge branch .* into .*)/[Conflicts] \1/g' "${GIT_DIR}/MERGE_MSG" && rm -f "${GIT_DIR}/MERGE_MSG.bak"
+fi
+
+# Always use the commit message from the merge message file.
+cp "${GIT_DIR}/MERGE_MSG" "$1" 2> /dev/null
+exit 0
