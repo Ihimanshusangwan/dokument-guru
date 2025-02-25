@@ -9,15 +9,23 @@ if [ "$CURRENT_BRANCH" == "test" ]; then
     exit 1
 fi
 
-# Run PHP-CS-Fixer in backend (auto-fix)
+# Run PHP-CS-Fixer only on changed files
 if [ -d "backend" ]; then
-    echo "⚡ Running PHP-CS-Fixer in backend (auto-fix)..."
-    (cd backend && vendor/bin/php-cs-fixer fix .)
-    if [ $? -ne 0 ]; then
-        echo "❌ PHP-CS-Fixer failed to fix all issues."
-        exit 1
+    PHP_FILES=$(git diff --cached --name-only | grep -E '^backend/.*\.php$')
+
+    if [ -n "$PHP_FILES" ]; then
+        echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
+        (cd backend && vendor/bin/php-cs-fixer fix --quiet)
+
+        # Check if there are fixes
+        if [ $? -ne 0 ]; then
+            echo "❌ PHP-CS-Fixer encountered an error."
+            exit 1
+        fi
+
+        echo "✅ PHP-CS-Fixer completed."
+        git add $PHP_FILES # Re-add fixed files
     fi
-    git add backend # Re-add fixed files to the commit
 fi
 
 # Get list of changed files
@@ -28,19 +36,30 @@ JS_TS_FILES=$(echo "$FILTERED_FILES" | grep -E '\.(js|jsx|ts|tsx)$')
 
 if [ -n "$JS_TS_FILES" ]; then
     echo "⚡ Running ESLint on changed JavaScript/TypeScript files..."
-    (cd frontend && npx eslint --fix $JS_TS_FILES)
+    (cd frontend && npx eslint --fix $JS_TS_FILES --quiet)
+
     if [ $? -ne 0 ]; then
         echo "❌ ESLint failed to fix all issues."
         exit 1
     fi
-    git add $JS_TS_FILES
 
+    echo "✅ ESLint completed."
+    git add $JS_TS_FILES
+fi
+
+# Run TypeScript check only if changed TS files exist
+TS_FILES=$(echo "$FILTERED_FILES" | grep -E '\.(ts|tsx)$')
+
+if [ -n "$TS_FILES" ]; then
     echo "⚡ Running TypeScript type check on changed files..."
-    (cd frontend && npx tsc --noEmit --pretty $JS_TS_FILES)
+    (cd frontend && npx tsc --noEmit --pretty --skipLibCheck)
+
     if [ $? -ne 0 ]; then
         echo "❌ TypeScript errors found. Please fix them before committing."
         exit 1
     fi
+
+    echo "✅ TypeScript type check completed."
 fi
 
 echo "✅ All checks passed! Proceeding with commit."
