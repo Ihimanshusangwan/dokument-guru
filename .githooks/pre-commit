@@ -2,10 +2,14 @@
 
 echo "🚀 Running Pre-Commit Hook..."
 
-# Prevent commits on the 'test' branch
+# Get the current branch name
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" == "test" ]; then
-    echo "❌ Direct commits to the 'test' branch are not allowed. Please use a feature or bugfix branch."
+
+# Check if there are merge conflicts
+CONFLICT_FILES=$(git diff --name-only --diff-filter=U)
+
+if [ "$CURRENT_BRANCH" == "test" ] && [ -z "$CONFLICT_FILES" ]; then
+    echo "❌ Direct commits to the 'test' branch are not allowed unless resolving merge conflicts."
     exit 1
 fi
 
@@ -61,7 +65,7 @@ if [ -n "$TS_FILES" ]; then
     echo "✅ TypeScript type check completed."
 fi
 
-# **Ensure deleted files are staged for commit**
+# Ensure deleted files are staged for commit
 git add --all
 
 echo "✅ All checks passed! Proceeding with commit."
