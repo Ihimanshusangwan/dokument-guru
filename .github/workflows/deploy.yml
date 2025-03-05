@@ -6,7 +6,6 @@ on:
       - test
   pull_request:
     types:
-      - closed
       - merged
     branches:
       - master
@@ -32,11 +31,6 @@ jobs:
           npm ci
           npm run build
 
-      - name: 📂 Copy Frontend Public to Backend Public Folder (Without Deleting Existing Files)
-        run: |
-          rsync -av --ignore-existing frontend/public/ backend/public/
-          rsync -av --update frontend/public/ backend/public/
-
       - name: 🛠️ Setup PHP and Install Dependencies Locally
         uses: shivammathur/setup-php@v2
         with:
@@ -58,22 +52,28 @@ jobs:
       - name: 🔍 Set Deployment Path
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "DEPLOY_PATH=domains/dokumentguru.com/public_html/admin" >> $GITHUB_ENV
+            echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app" >> $GITHUB_ENV
+            echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/backend" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-            echo "DEPLOY_PATH=domains/dokumentguru.com/public_html/admin/test" >> $GITHUB_ENV
+            echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test" >> $GITHUB_ENV
+            echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test/backend" >> $GITHUB_ENV
           else
             echo "❌ Unsupported branch, skipping deployment!" && exit 1
           fi
 
-      - name: 🔍 Check if Deployment Folder Exists on Server
+      - name: 🔍 Check if Deployment Folders Exist on Server
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d $DEPLOY_PATH ]]" || { echo '❌ Target directory does not exist!'; exit 1; }
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d $FRONTEND_DEPLOY_PATH ]]" || { echo '❌ Frontend target directory does not exist!'; exit 1; }
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "[[ -d $BACKEND_DEPLOY_PATH ]]" || { echo '❌ Backend target directory does not exist!'; exit 1; }
 
-      - name: 📂 Deploy Backend (Including Vendor) to Server using SSH
+      - name: 📂 Deploy Frontend to Server using SSH
         run: |
-          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH
+          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" frontend/dist/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:$FRONTEND_DEPLOY_PATH
+
+      - name: 📂 Deploy Backend to Server using SSH
+        run: |
+          rsync -avz --progress -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa" backend/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:$BACKEND_DEPLOY_PATH
 
       - name: 🔄 Run Migrations and Seed Database
         run: |
-          ssh -t -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd $DEPLOY_PATH && php artisan migrate --seed --force"
-      
+          ssh -t -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd $BACKEND_DEPLOY_PATH && php artisan migrate --seed --force"
