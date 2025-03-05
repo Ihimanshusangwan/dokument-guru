@@ -50,16 +50,16 @@ jobs:
           ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🔍 Set Deployment Path
-          run: |
-            if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-              echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app" >> $GITHUB_ENV
-              echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/backend" >> $GITHUB_ENV
-            elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-              echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test" >> $GITHUB_ENV
-              echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test/backend" >> $GITHUB_ENV
-            else
-              echo "❌ Unsupported branch, skipping deployment!" && exit 1
-            fi
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app" >> $GITHUB_ENV
+            echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/backend" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+            echo "FRONTEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test" >> $GITHUB_ENV
+            echo "BACKEND_DEPLOY_PATH=domains/dokumentguru.com/public_html/new_app/new_app_test/backend" >> $GITHUB_ENV
+          else
+            echo "❌ Unsupported branch, skipping deployment!" && exit 1
+          fi
 
       - name: 🔍 Check if Deployment Folders Exist on Server
         run: |
