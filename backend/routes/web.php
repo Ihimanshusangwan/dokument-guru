@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\File;
+use App\Helpers\ResponseHelper;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return File::get(public_path('/build/index.html'));
+    return ResponseHelper::successResponse('Hello From Himanshu!');
 });
