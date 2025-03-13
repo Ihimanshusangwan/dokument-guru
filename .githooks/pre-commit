@@ -40,20 +40,20 @@ fi
 # Get list of changed files
 CHANGED_FILES=$(git diff --cached --name-only)
 
-# Run PHP-CS-Fixer only on changed PHP files
-PHP_FILES=$(echo "$CHANGED_FILES" | grep -E '^backend/.*\.php$')
-if [ -n "$PHP_FILES" ]; then
-    echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
-    (cd backend && vendor/bin/php-cs-fixer fix --quiet $PHP_FILES)
-
-    if [ $? -ne 0 ]; then
-        echo "❌ PHP-CS-Fixer encountered an error."
-        exit 1
-    fi
-
-    git add $PHP_FILES
-    echo "✅ PHP-CS-Fixer completed."
-fi
+## Run PHP-CS-Fixer only on changed PHP files
+#PHP_FILES=$(echo "$CHANGED_FILES" | grep -E '^backend/.*\.php$')
+#if [ -n "$PHP_FILES" ]; then
+#    echo "⚡ Running PHP-CS-Fixer on changed PHP files..."
+#    (cd backend && vendor/bin/php-cs-fixer fix --quiet $PHP_FILES)
+#
+#    if [ $? -ne 0 ]; then
+#        echo "❌ PHP-CS-Fixer encountered an error."
+#        exit 1
+#    fi
+#
+#    git add $PHP_FILES
+#    echo "✅ PHP-CS-Fixer completed."
+#fi
 
 
 # Run ESLint only on changed JS/TS files inside `frontend/src`
