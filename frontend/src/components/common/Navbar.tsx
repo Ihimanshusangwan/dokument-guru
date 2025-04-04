@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {Link} from 'react-router-dom';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -20,10 +21,12 @@ export function Navbar() {
                         <a href="#features" className="text-gray-700 hover:text-blue-600 transition-colors">
                             Features
                         </a>
-                        <button
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <Link
+                            to="/signin"
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
                             Login
-                        </button>
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -63,10 +66,13 @@ export function Navbar() {
                            className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             Features
                         </a>
-                        <button
-                            className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-3">
+                        <Link
+                            to="/signin"
+                            onClick={() => setIsOpen(false)}
+                            className="block w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-3"
+                        >
                             Login
-                        </button>
+                        </Link>
                     </div>
                 )}
             </div>
