@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// App.tsx
+import {BrowserRouter as Router, Route, Routes, useNavigate} from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import {SignIn} from './pages/SignIn';
+import {SignUp} from './pages/SignUp';
+import {useState} from 'react';
+import {useAppConfig} from './hooks/useAppConfig';
+import ErrorNotification from "./components/common/ErrorNotification.tsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppRoutes() {
+    const [error, setError] = useState<{ message: string; redirectUrl?: string } | null>(null);
+    const navigate = useNavigate();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const showError = (msg: string, redirectUrl?: string) => {
+        setError({message: msg, redirectUrl});
+    };
+
+    const handleModalClose = () => {
+        if (error?.redirectUrl) {
+            navigate(error.redirectUrl);
+        }
+        setError(null);
+    };
+
+    useAppConfig({showError});
+
+    return (
+        <>
+            <ErrorNotification visible={!!error} message={error?.message || ''} onClose={handleModalClose}/>
+            <Routes>
+                <Route path="/" element={<LandingPage/>}/>
+                <Route path="/signin" element={<SignIn/>}/>
+                <Route path="/signup" element={<SignUp/>}/>
+            </Routes>
+        </>
+    );
 }
 
-export default App
+function App() {
+    return (
+        <Router>
+            <AppRoutes/>
+        </Router>
+    );
+}
+
+export default App;
