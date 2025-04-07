@@ -1,8 +1,10 @@
 import {useState} from 'react';
 import {Link} from 'react-router-dom';
+import {useAuth} from "../../hooks/useAuth.ts";
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const {isLoggedIn, logout} = useAuth();
 
     return (
         <nav className="bg-white shadow-lg fixed w-full top-0 z-50">
@@ -21,12 +23,29 @@ export function Navbar() {
                         <a href="#features" className="text-gray-700 hover:text-blue-600 transition-colors">
                             Features
                         </a>
-                        <Link
-                            to="/signin"
-                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Login
-                        </Link>
+                        {isLoggedIn ? (
+                            <>
+                                <Link
+                                    to="/dashboard"
+                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Dashboard
+                                </Link>
+                                <button
+                                    onClick={logout}
+                                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <Link
+                                to="/signin"
+                                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Login
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -66,13 +85,34 @@ export function Navbar() {
                            className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             Features
                         </a>
-                        <Link
-                            to="/signin"
-                            onClick={() => setIsOpen(false)}
-                            className="block w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-3"
-                        >
-                            Login
-                        </Link>
+                        {isLoggedIn ? (
+                            <>
+                                <Link
+                                    to="/dashboard"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-3"
+                                >
+                                    Dashboard
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        logout();
+                                        setIsOpen(false);
+                                    }}
+                                    className="block w-full text-left px-6 py-2 text-gray-700 hover:text-blue-600 transition-colors mx-3"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <Link
+                                to="/signin"
+                                onClick={() => setIsOpen(false)}
+                                className="block w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors mx-3"
+                            >
+                                Login
+                            </Link>
+                        )}
                     </div>
                 )}
             </div>

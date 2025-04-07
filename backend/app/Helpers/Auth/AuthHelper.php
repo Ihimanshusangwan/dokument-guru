@@ -14,6 +14,9 @@ class AuthHelper extends BaseHelper
     {
         $payload = [
             'sub' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => 'admin',
             'iat' => time(),
             'exp' => time() + env('JWT_EXPIRATION_TIME', 86400),
         ];

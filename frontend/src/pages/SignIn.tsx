@@ -3,8 +3,10 @@ import {Link} from 'react-router-dom';
 import axios from 'axios';
 import {TextInput} from "../components/form/TextInput.tsx";
 import {emailRule, minLengthRule, requiredRule} from "../utils/form/validators.ts";
+import {useAuth} from "../hooks/useAuth.ts";
 
 export const SignIn = () => {
+    const {login} = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -25,15 +27,13 @@ export const SignIn = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/login', {
+            const response = await axios.post('/login', {
                 email: formData.email,
                 password: formData.password
             });
-
+            console.log(response);
             if (response.data.token) {
-                localStorage.setItem('authToken', response.data.token);
-                // Optional: Redirect user or update app state
-                console.log('Login successful!');
+                login(response.data.token)
             }
         } catch (error) {
             //do nothing

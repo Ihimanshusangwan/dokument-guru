@@ -34,6 +34,7 @@ export const useAppConfig = ({showError}: UseAppConfigProps) => {
     useEffect(() => {
         const reqInterceptor = axios.interceptors.request.use((config: AxiosRequestConfig) => {
             const newConfig = {...config}
+            newConfig.baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
             newConfig.headers = newConfig.headers || {}
             newConfig.headers['Content-Type'] = 'application/json'
 

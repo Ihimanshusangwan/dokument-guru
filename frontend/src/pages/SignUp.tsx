@@ -4,8 +4,10 @@ import axios from 'axios';
 import {TextInput} from "../components/form/TextInput.tsx";
 import {emailRule, minLengthRule, passwordMatchRule, requiredRule} from "../utils/form/validators.ts";
 import {PasswordStrength} from "../components/form/singup/PasswordStrength.tsx";
+import {useAuth} from "../hooks/useAuth.ts";
 
 export const SignUp = () => {
+    const {login} = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -37,7 +39,7 @@ export const SignUp = () => {
             });
 
             const response = await axios.post(
-                'http://127.0.0.1:8000/api/signup',
+                '/signup',
                 formDataToSend,
                 {
                     headers: {
@@ -47,9 +49,7 @@ export const SignUp = () => {
             );
 
             if (response.data.token) {
-                localStorage.setItem('authToken', response.data.token);
-                console.log('Signup successful!');
-                // Consider redirecting here: window.location.href = '/dashboard';
+                login(response.data.token);
             }
         } catch (error) {
             //no handling

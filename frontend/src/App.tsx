@@ -1,4 +1,3 @@
-// App.tsx
 import {BrowserRouter as Router, Route, Routes, useNavigate} from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import {SignIn} from './pages/SignIn';
@@ -6,6 +5,7 @@ import {SignUp} from './pages/SignUp';
 import {useState} from 'react';
 import {useAppConfig} from './hooks/useAppConfig';
 import ErrorNotification from "./components/common/ErrorNotification.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 
 function AppRoutes() {
     const [error, setError] = useState<{ message: string; redirectUrl?: string } | null>(null);
@@ -31,6 +31,8 @@ function AppRoutes() {
                 <Route path="/" element={<LandingPage/>}/>
                 <Route path="/signin" element={<SignIn/>}/>
                 <Route path="/signup" element={<SignUp/>}/>
+                <Route path="/dashboard" element={<Dashboard/>}/>
+
             </Routes>
         </>
     );
